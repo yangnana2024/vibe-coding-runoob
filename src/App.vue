@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import TaskModal from './components/TaskModal.vue'
 import TaskList from './components/TaskList.vue'
 import type { Task } from './types/task'
 
-const tasks = ref<Task[]>([
+const tasks = reactive<Task[]>([
   {
     id: 'task-1',
     title: '梳理产品需求与用户流程',
@@ -18,35 +18,29 @@ const tasks = ref<Task[]>([
     id: 'task-2',
     title: '搭建 Vue 项目基础结构',
     description: '完成页面入口、组件组织方式和 Tailwind CSS 配置。',
-    status: 'done',
-    priority: 'medium',
-    dueDate: '2026-10-08',
-    createdAt: '2026-10-05',
-  },
-  {
-    id: 'task-3',
-    title: '设计任务卡片样式',
-    description: '为不同状态与优先级提供清晰、易扫读的视觉标记。',
     status: 'todo',
-    priority: 'low',
-    dueDate: '2026-10-13',
-    createdAt: '2026-10-07',
+    priority: 'medium',
+    dueDate: '2026-10-12',
+    createdAt: '2026-10-05',
   },
 ])
 
-const completedCount = computed(() => tasks.value.filter((task) => task.status === 'done').length)
+const isTaskModalOpen = ref(false)
+
+const completedCount = computed(() => tasks.filter((task) => task.status === 'done').length)
 
 function toggleTask(updatedTask: Task) {
-  const task = tasks.value.find((item) => item.id === updatedTask.id)
+  const task = tasks.find((item) => item.id === updatedTask.id)
   if (task) task.status = task.status === 'done' ? 'todo' : 'done'
 }
 
 function deleteTask(deletedTask: Task) {
-  tasks.value = tasks.value.filter((task) => task.id !== deletedTask.id)
+  const taskIndex = tasks.findIndex((task) => task.id === deletedTask.id)
+  if (taskIndex !== -1) tasks.splice(taskIndex, 1)
 }
 
 function addTask(task: Task) {
-  tasks.value.push(task)
+  tasks.push(task)
 }
 </script>
 
@@ -77,7 +71,7 @@ function addTask(task: Task) {
             <span class="grid size-8 place-items-center rounded-lg bg-indigo-50 text-sm font-bold text-indigo-700">{{ completedCount }}</span>
             <span class="text-sm text-slate-600">/{{ tasks.length }} 项已完成</span>
           </div>
-          <TaskModal @submit="addTask" />
+          <TaskModal v-model="isTaskModalOpen" @submit="addTask" />
         </div>
       </section>
 

@@ -2,11 +2,15 @@
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
 import type { Task, TaskPriority } from '../types/task'
 
+const props = defineProps<{
+  modelValue: boolean
+}>()
+
 const emit = defineEmits<{
+  'update:modelValue': [isOpen: boolean]
   submit: [task: Task]
 }>()
 
-const isOpen = ref(false)
 const titleError = ref(false)
 const form = reactive({
   title: '',
@@ -15,12 +19,12 @@ const form = reactive({
 })
 
 function closeModal() {
-  isOpen.value = false
+  emit('update:modelValue', false)
   titleError.value = false
 }
 
 function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape' && isOpen.value) closeModal()
+  if (event.key === 'Escape' && props.modelValue) closeModal()
 }
 
 function submitTask() {
@@ -59,7 +63,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
   <button
     type="button"
     class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-    @click="isOpen = true"
+    @click="emit('update:modelValue', true)"
   >
     <span aria-hidden="true" class="text-lg leading-none">+</span>
     新建任务
@@ -67,7 +71,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
 
   <Teleport to="body">
       <div
-        v-if="isOpen"
+        v-if="modelValue"
         class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-slate-950/45 p-4"
         @click.self="closeModal"
       >
