@@ -11,6 +11,7 @@ const emit = defineEmits<{
   toggle: [task: Task]
   delete: [task: Task]
   move: [payload: { taskId: string; status: TaskStatus }]
+  edit: [task: Task]
 }>()
 
 const filters: { label: string; value: TaskStatus | 'all' }[] = [
@@ -58,6 +59,7 @@ const visibleTasks = computed(() =>
           @toggle="emit('toggle', $event)"
           @delete="emit('delete', $event)"
           @move="emit('move', $event)"
+          @edit="emit('edit', $event)"
         />
       </li>
     </ul>

@@ -9,6 +9,7 @@ import { appReleaseDate, appVersion, changelogHtml } from './appMetadata'
 import type { Task } from './types/task'
 
 const isTaskModalOpen = ref(false)
+const editingTask = ref<Task | null>(null)
 const isMobileMenuOpen = ref(false)
 const activeView = ref<'list' | 'kanban'>('list')
 
@@ -24,6 +25,30 @@ function toggleTask(updatedTask: Task) {
 function moveTask(payload: { taskId: string; status: Task['status'] }) {
   const task = taskStore.tasks.find((item) => item.id === payload.taskId)
   if (task) updateTask({ ...task, status: payload.status })
+}
+
+function openEditTask(task: Task) {
+  editingTask.value = task
+  isTaskModalOpen.value = true
+}
+
+function openNewTask() {
+  editingTask.value = null
+  isTaskModalOpen.value = true
+}
+
+function saveTask(updatedTask: Task) {
+  const originalTask = editingTask.value
+  if (!originalTask) {
+    addTask(updatedTask)
+    return
+  }
+
+  updateTask({
+    ...updatedTask,
+    id: originalTask.id,
+    createdAt: originalTask.createdAt,
+  })
 }
 
 function selectView(view: 'list' | 'kanban') {
@@ -97,7 +122,12 @@ function selectView(view: 'list' | 'kanban') {
             <span class="grid size-8 place-items-center rounded-lg bg-indigo-50 text-sm font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">{{ completedCount }}</span>
             <span class="text-sm text-slate-600 dark:text-slate-300">/{{ taskStore.tasks.length }} 项已完成</span>
           </div>
-          <TaskModal v-model="isTaskModalOpen" @submit="addTask" />
+          <TaskModal
+            v-model="isTaskModalOpen"
+            :task="editingTask"
+            @create="openNewTask"
+            @submit="saveTask"
+          />
         </div>
       </section>
 
@@ -130,6 +160,7 @@ function selectView(view: 'list' | 'kanban') {
         @move="moveTask"
         @toggle="toggleTask"
         @delete="deleteTask"
+        @edit="openEditTask"
       />
       <KanbanBoard
         v-else
@@ -137,6 +168,7 @@ function selectView(view: 'list' | 'kanban') {
         @move="moveTask"
         @toggle="toggleTask"
         @delete="deleteTask"
+        @edit="openEditTask"
       />
     </main>
 

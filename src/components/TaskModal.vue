@@ -1,22 +1,52 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, reactive, ref } from 'vue'
-import type { Task, TaskPriority } from '../types/task'
+import { onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import type { Task, TaskPriority, TaskStatus } from '../types/task'
 
 const props = defineProps<{
   modelValue: boolean
+  task: Task | null
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [isOpen: boolean]
+  create: []
   submit: [task: Task]
 }>()
+
+function getLocalDate() {
+  const now = new Date()
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60_000)
+    .toISOString()
+    .slice(0, 10)
+}
+
+function formatDate(date: string) {
+  const [year, month, day] = date.split('-')
+  return year && month && day ? `${year}年${month}月${day}日` : '请选择日期'
+}
 
 const titleError = ref(false)
 const form = reactive({
   title: '',
   description: '',
+  status: 'todo' as TaskStatus,
   priority: 'medium' as TaskPriority,
+  dueDate: getLocalDate(),
 })
+
+watch(
+  () => [props.modelValue, props.task] as const,
+  ([isOpen, task]) => {
+    if (!isOpen) return
+    titleError.value = false
+    form.title = task?.title ?? ''
+    form.description = task?.description ?? ''
+    form.status = task?.status ?? 'todo'
+    form.priority = task?.priority ?? 'medium'
+    form.dueDate = task?.dueDate ?? getLocalDate()
+  },
+  { immediate: true },
+)
 
 function closeModal() {
   emit('update:modelValue', false)
@@ -35,23 +65,22 @@ function submitTask() {
   }
 
   const now = new Date()
-  const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60_000)
-    .toISOString()
-    .slice(0, 10)
 
   emit('submit', {
-    id: crypto.randomUUID(),
+    id: props.task?.id ?? crypto.randomUUID(),
     title,
     description: form.description.trim(),
-    status: 'todo',
+    status: form.status,
     priority: form.priority,
-    dueDate: localDate,
-    createdAt: now.toISOString(),
+    dueDate: form.dueDate,
+    createdAt: props.task?.createdAt ?? now.toISOString(),
   })
 
   form.title = ''
   form.description = ''
+  form.status = 'todo'
   form.priority = 'medium'
+  form.dueDate = getLocalDate()
   closeModal()
 }
 
@@ -63,7 +92,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
   <button
     type="button"
     class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-    @click="emit('update:modelValue', true)"
+    @click="emit('create')"
   >
     <span aria-hidden="true" class="text-lg leading-none">+</span>
     新建任务
@@ -100,8 +129,8 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
         >
           <div class="mb-6 flex items-start justify-between gap-4">
             <div>
-              <h2 id="task-modal-title" class="m-0 text-xl font-semibold text-slate-900 dark:text-slate-100">新建任务</h2>
-              <p class="mb-0 mt-1 text-sm text-slate-500 dark:text-slate-400">填写任务信息，稍后也可以继续调整。</p>
+              <h2 id="task-modal-title" class="m-0 text-xl font-semibold text-slate-900 dark:text-slate-100">{{ task ? '编辑任务' : '新建任务' }}</h2>
+              <p class="mb-0 mt-1 text-sm text-slate-500 dark:text-slate-400">{{ task ? '更新任务信息；创建时间仅供查看。' : '填写任务信息，稍后也可以继续调整。' }}</p>
             </div>
             <button
               type="button"
@@ -145,6 +174,27 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
             </div>
 
             <div>
+              <label for="task-due-date" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">截止日期</label>
+              <div class="relative min-h-11 w-full">
+                <input
+                  id="task-due-date"
+                  v-model="form.dueDate"
+                  type="date"
+                  lang="zh-CN"
+                  required
+                  class="peer absolute inset-0 z-10 w-full cursor-pointer opacity-0"
+                />
+                <div
+                  aria-hidden="true"
+                  class="flex min-h-11 items-center justify-between rounded-md border border-slate-300 bg-white px-3 text-base text-slate-900 transition peer-focus-visible:border-indigo-500 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                >
+                  <time>{{ formatDate(form.dueDate) }}</time>
+                  <span class="text-sm text-slate-400">更改</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
               <label for="task-priority" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">优先级</label>
               <select
                 id="task-priority"
@@ -155,6 +205,28 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
                 <option value="medium">中优先级</option>
                 <option value="low">低优先级</option>
               </select>
+            </div>
+
+            <div v-if="task" class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="task-status" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">状态</label>
+                <select
+                  id="task-status"
+                  v-model="form.status"
+                  class="min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-base text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                >
+                  <option value="todo">待办</option>
+                  <option value="in-progress">进行中</option>
+                  <option value="done">已完成</option>
+                </select>
+              </div>
+              <div>
+                <span class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">创建时间</span>
+                <time
+                  :datetime="task.createdAt"
+                  class="flex min-h-11 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                >{{ task.createdAt.slice(0, 10) }}</time>
+              </div>
             </div>
 
             <div class="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
@@ -169,7 +241,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
                 type="submit"
                 class="min-h-11 rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
-                创建任务
+                {{ task ? '保存修改' : '创建任务' }}
               </button>
             </div>
           </form>

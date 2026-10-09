@@ -10,6 +10,7 @@ const emit = defineEmits<{
   toggle: [task: Task]
   delete: [task: Task]
   move: [payload: { taskId: string; status: TaskStatus }]
+  edit: [task: Task]
 }>()
 
 const priorityLabels = {
@@ -33,6 +34,9 @@ const statusOptions: { label: string; value: TaskStatus }[] = [
 const isStatusPickerOpen = ref(false)
 const statusPickerTrigger = ref<HTMLButtonElement | null>(null)
 const firstStatusOption = ref<HTMLButtonElement | null>(null)
+const isDeleteConfirmOpen = ref(false)
+const deleteTrigger = ref<HTMLButtonElement | null>(null)
+const cancelDeleteButton = ref<HTMLButtonElement | null>(null)
 
 function openStatusPicker() {
   isStatusPickerOpen.value = true
@@ -47,6 +51,21 @@ function closeStatusPicker() {
 function changeStatus(status: TaskStatus, task: Task) {
   emit('move', { taskId: task.id, status })
   closeStatusPicker()
+}
+
+function openDeleteConfirm() {
+  isDeleteConfirmOpen.value = true
+  nextTick(() => cancelDeleteButton.value?.focus())
+}
+
+function closeDeleteConfirm() {
+  isDeleteConfirmOpen.value = false
+  nextTick(() => deleteTrigger.value?.focus())
+}
+
+function confirmDelete(task: Task) {
+  isDeleteConfirmOpen.value = false
+  emit('delete', task)
 }
 </script>
 
@@ -120,14 +139,26 @@ function changeStatus(status: TaskStatus, task: Task) {
         <span class="block text-[11px] text-slate-400 dark:text-slate-500">截止日期</span>
         <time class="mt-1 block font-medium text-slate-600 dark:text-slate-300">{{ task.dueDate }}</time>
       </div>
-      <button
-        type="button"
-        aria-label="删除任务"
-        class="grid size-11 shrink-0 place-items-center rounded-md text-xl leading-none text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-rose-500 dark:text-slate-500 dark:hover:bg-rose-950 dark:hover:text-rose-300"
-        @click="emit('delete', task)"
-      >
-        ×
-      </button>
+      <div class="flex shrink-0 items-center gap-1">
+        <button
+          type="button"
+          aria-label="编辑任务"
+          title="编辑任务"
+          class="grid size-11 place-items-center rounded-md text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+          @click="emit('edit', task)"
+        >
+          编辑
+        </button>
+        <button
+          ref="deleteTrigger"
+          type="button"
+          aria-label="删除任务"
+          class="grid size-11 place-items-center rounded-md text-xl leading-none text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-rose-500 dark:text-slate-500 dark:hover:bg-rose-950 dark:hover:text-rose-300"
+          @click="openDeleteConfirm"
+        >
+          ×
+        </button>
+      </div>
     </div>
   </article>
 
@@ -178,6 +209,54 @@ function changeStatus(status: TaskStatus, task: Task) {
             >
               {{ option.label }}
               <span v-if="task.status === option.value" aria-hidden="true">当前</span>
+            </button>
+          </div>
+        </section>
+      </div>
+    </Transition>
+  </Teleport>
+
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transition-opacity duration-150"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-150"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="isDeleteConfirmOpen"
+        class="fixed inset-0 z-[60] grid place-items-center bg-slate-950/45 p-4"
+        @click.self="closeDeleteConfirm"
+        @keydown.esc.stop.prevent="closeDeleteConfirm"
+      >
+        <section
+          role="alertdialog"
+          aria-modal="true"
+          :aria-labelledby="`delete-title-${task.id}`"
+          :aria-describedby="`delete-description-${task.id}`"
+          class="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+        >
+          <h2 :id="`delete-title-${task.id}`" class="m-0 text-base font-semibold text-slate-900 dark:text-slate-100">确定删除任务？</h2>
+          <p :id="`delete-description-${task.id}`" class="mb-0 mt-2 break-words text-sm leading-6 text-slate-600 dark:text-slate-300">
+            “{{ task.title }}”删除后无法恢复。
+          </p>
+          <div class="mt-5 flex justify-end gap-2">
+            <button
+              ref="cancelDeleteButton"
+              type="button"
+              class="min-h-11 rounded-md border border-slate-300 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              @click="closeDeleteConfirm"
+            >
+              取消
+            </button>
+            <button
+              type="button"
+              class="min-h-11 rounded-md bg-rose-600 px-4 text-sm font-semibold text-white hover:bg-rose-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
+              @click="confirmDelete(task)"
+            >
+              确认删除
             </button>
           </div>
         </section>

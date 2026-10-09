@@ -11,6 +11,7 @@ const emit = defineEmits<{
   move: [payload: { taskId: string; status: TaskStatus }]
   toggle: [task: Task]
   delete: [task: Task]
+  edit: [task: Task]
 }>()
 
 const columns: { title: string; status: TaskStatus }[] = [
@@ -78,6 +79,7 @@ function dropTask(event: DragEvent, status: TaskStatus) {
               :task="task"
               @toggle="emit('toggle', $event)"
               @delete="emit('delete', $event)"
+              @edit="emit('edit', $event)"
               @move="emit('move', $event)"
             />
           </div>
