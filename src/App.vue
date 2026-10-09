@@ -1,46 +1,19 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, ref } from 'vue'
 import TaskModal from './components/TaskModal.vue'
 import TaskList from './components/TaskList.vue'
+import { addTask, deleteTask, taskStore, updateTask } from './stores/taskStore'
 import type { Task } from './types/task'
-
-const tasks = reactive<Task[]>([
-  {
-    id: 'task-1',
-    title: '梳理产品需求与用户流程',
-    description: '整理核心使用场景，明确任务列表的第一版功能范围。',
-    status: 'in-progress',
-    priority: 'high',
-    dueDate: '2026-10-10',
-    createdAt: '2026-10-06',
-  },
-  {
-    id: 'task-2',
-    title: '搭建 Vue 项目基础结构',
-    description: '完成页面入口、组件组织方式和 Tailwind CSS 配置。',
-    status: 'todo',
-    priority: 'medium',
-    dueDate: '2026-10-12',
-    createdAt: '2026-10-05',
-  },
-])
 
 const isTaskModalOpen = ref(false)
 
-const completedCount = computed(() => tasks.filter((task) => task.status === 'done').length)
+const completedCount = computed(() => taskStore.tasks.filter((task) => task.status === 'done').length)
 
 function toggleTask(updatedTask: Task) {
-  const task = tasks.find((item) => item.id === updatedTask.id)
-  if (task) task.status = task.status === 'done' ? 'todo' : 'done'
-}
-
-function deleteTask(deletedTask: Task) {
-  const taskIndex = tasks.findIndex((task) => task.id === deletedTask.id)
-  if (taskIndex !== -1) tasks.splice(taskIndex, 1)
-}
-
-function addTask(task: Task) {
-  tasks.push(task)
+  updateTask({
+    ...updatedTask,
+    status: updatedTask.status === 'done' ? 'todo' : 'done',
+  })
 }
 </script>
 
@@ -69,13 +42,13 @@ function addTask(task: Task) {
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
             <span class="grid size-8 place-items-center rounded-lg bg-indigo-50 text-sm font-bold text-indigo-700">{{ completedCount }}</span>
-            <span class="text-sm text-slate-600">/{{ tasks.length }} 项已完成</span>
+            <span class="text-sm text-slate-600">/{{ taskStore.tasks.length }} 项已完成</span>
           </div>
           <TaskModal v-model="isTaskModalOpen" @submit="addTask" />
         </div>
       </section>
 
-      <TaskList :tasks="tasks" @toggle="toggleTask" @delete="deleteTask" />
+      <TaskList :tasks="taskStore.tasks" @toggle="toggleTask" @delete="deleteTask" />
     </main>
   </div>
 </template>
