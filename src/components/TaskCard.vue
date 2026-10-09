@@ -25,11 +25,11 @@ const statusLabels = {
 
 <template>
   <article
-    class="grid gap-4 rounded-md border border-slate-200 border-l-4 bg-white px-4 py-4 shadow-sm transition-transform duration-200 hover:scale-[1.02] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+    class="grid gap-4 rounded-md border border-slate-200 border-l-4 bg-white px-4 py-4 shadow-sm transition-transform duration-200 hover:scale-[1.02] dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/20 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
     :class="{
-      'border-l-rose-500': task.priority === 'high',
-      'border-l-amber-400': task.priority === 'medium',
-      'border-l-emerald-500': task.priority === 'low',
+      'border-l-rose-500 dark:border-l-rose-400': task.priority === 'high',
+      'border-l-amber-400 dark:border-l-amber-300': task.priority === 'medium',
+      'border-l-emerald-500 dark:border-l-emerald-400': task.priority === 'low',
     }"
   >
     <div class="flex min-w-0 gap-3">
@@ -42,27 +42,27 @@ const statusLabels = {
       />
       <div class="min-w-0">
         <h3
-          class="m-0 text-sm font-semibold text-slate-800"
-          :class="task.status === 'done' ? 'text-slate-400 line-through' : ''"
+          class="m-0 text-sm font-semibold text-slate-800 dark:text-slate-100"
+          :class="task.status === 'done' ? 'text-slate-400 line-through dark:text-slate-500' : ''"
         >
           {{ task.title }}
         </h3>
-        <p class="mb-0 mt-1.5 text-sm leading-5 text-slate-500">{{ task.description }}</p>
+        <p class="mb-0 mt-1.5 text-sm leading-5 text-slate-500 dark:text-slate-400">{{ task.description }}</p>
         <div class="mt-3 flex flex-wrap items-center gap-2">
           <span
             class="rounded-md px-2 py-1 text-xs font-medium"
             :class="{
-              'bg-slate-100 text-slate-600': task.status === 'todo',
-              'bg-indigo-50 text-indigo-700': task.status === 'in-progress',
-              'bg-emerald-50 text-emerald-700': task.status === 'done',
+              'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300': task.status === 'todo',
+              'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300': task.status === 'in-progress',
+              'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300': task.status === 'done',
             }"
           >{{ statusLabels[task.status] }}</span>
           <span
             class="rounded-md px-2 py-1 text-xs font-medium"
             :class="{
-              'bg-slate-100 text-slate-600': task.priority === 'low',
-              'bg-amber-50 text-amber-700': task.priority === 'medium',
-              'bg-rose-50 text-rose-700': task.priority === 'high',
+              'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300': task.priority === 'low',
+              'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300': task.priority === 'medium',
+              'bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300': task.priority === 'high',
             }"
           >{{ priorityLabels[task.priority] }}</span>
         </div>
@@ -70,14 +70,14 @@ const statusLabels = {
     </div>
 
     <div class="flex items-center justify-between gap-4 pl-7 sm:justify-end sm:pl-0">
-      <div class="text-xs text-slate-500 sm:text-right">
-        <span class="block text-[11px] text-slate-400">截止日期</span>
-        <time class="mt-1 block font-medium text-slate-600">{{ task.dueDate }}</time>
+      <div class="text-xs text-slate-500 dark:text-slate-400 sm:text-right">
+        <span class="block text-[11px] text-slate-400 dark:text-slate-500">截止日期</span>
+        <time class="mt-1 block font-medium text-slate-600 dark:text-slate-300">{{ task.dueDate }}</time>
       </div>
       <button
         type="button"
         aria-label="删除任务"
-        class="grid size-8 shrink-0 place-items-center rounded-md text-xl leading-none text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-rose-500"
+        class="grid size-8 shrink-0 place-items-center rounded-md text-xl leading-none text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-rose-500 dark:text-slate-500 dark:hover:bg-rose-950 dark:hover:text-rose-300"
         @click="emit('delete', task)"
       >
         ×

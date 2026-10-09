@@ -51,7 +51,7 @@ function dropTask(event: DragEvent, status: TaskStatus) {
     <section
       v-for="column in columns"
       :key="column.status"
-      class="min-w-[280px] flex-1 rounded-lg border border-slate-200 bg-slate-50/70 p-3"
+      class="min-w-[280px] flex-1 rounded-lg border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-900/80"
       :class="{
         'border-t-4 border-t-slate-400': column.status === 'todo',
         'border-t-4 border-t-sky-500': column.status === 'in-progress',
@@ -61,8 +61,8 @@ function dropTask(event: DragEvent, status: TaskStatus) {
       @drop="dropTask($event, column.status)"
     >
       <header class="mb-3 flex items-center justify-between px-1 py-1">
-        <h2 class="m-0 text-sm font-semibold text-slate-800">{{ column.title }}</h2>
-        <span class="grid min-w-6 place-items-center rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-500">
+        <h2 class="m-0 text-sm font-semibold text-slate-800 dark:text-slate-100">{{ column.title }}</h2>
+        <span class="grid min-w-6 place-items-center rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-300">
           {{ tasksByStatus[column.status].length }}
         </span>
       </header>
@@ -81,7 +81,7 @@ function dropTask(event: DragEvent, status: TaskStatus) {
             />
           </div>
         </li>
-        <li v-if="tasksByStatus[column.status].length === 0" class="px-2 py-8 text-center text-xs text-slate-400">
+        <li v-if="tasksByStatus[column.status].length === 0" class="px-2 py-8 text-center text-xs text-slate-400 dark:text-slate-500">
           将任务拖到此列
         </li>
       </ul>

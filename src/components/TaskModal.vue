@@ -79,17 +79,17 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
           role="dialog"
           aria-modal="true"
           aria-labelledby="task-modal-title"
-          class="my-auto w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl"
+          class="my-auto w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl dark:bg-slate-900"
         >
           <div class="mb-6 flex items-start justify-between gap-4">
             <div>
-              <h2 id="task-modal-title" class="m-0 text-xl font-semibold text-slate-900">新建任务</h2>
-              <p class="mb-0 mt-1 text-sm text-slate-500">填写任务信息，稍后也可以继续调整。</p>
+              <h2 id="task-modal-title" class="m-0 text-xl font-semibold text-slate-900 dark:text-slate-100">新建任务</h2>
+              <p class="mb-0 mt-1 text-sm text-slate-500 dark:text-slate-400">填写任务信息，稍后也可以继续调整。</p>
             </div>
             <button
               type="button"
               aria-label="关闭弹窗"
-              class="grid size-8 shrink-0 place-items-center rounded-md text-xl leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-indigo-500"
+              class="grid size-8 shrink-0 place-items-center rounded-md text-xl leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
               @click="closeModal"
             >
               ×
@@ -98,7 +98,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
 
           <form class="space-y-5" @submit.prevent="submitTask">
             <div>
-              <label for="task-title" class="mb-1.5 block text-sm font-medium text-slate-700">标题</label>
+              <label for="task-title" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">标题</label>
               <input
                 id="task-title"
                 v-model="form.title"
@@ -106,8 +106,8 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
                 aria-required="true"
                 :aria-invalid="titleError"
                 aria-describedby="task-title-error"
-                class="w-full rounded-md border px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                :class="titleError ? 'border-rose-500' : 'border-slate-300'"
+                class="w-full rounded-md border bg-white px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
+                :class="titleError ? 'border-rose-500 dark:border-rose-400' : 'border-slate-300 dark:border-slate-700'"
                 placeholder="输入任务标题"
                 @input="titleError = false"
               />
@@ -117,22 +117,22 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
             </div>
 
             <div>
-              <label for="task-description" class="mb-1.5 block text-sm font-medium text-slate-700">描述（选填）</label>
+              <label for="task-description" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">描述（选填）</label>
               <textarea
                 id="task-description"
                 v-model="form.description"
                 rows="3"
-                class="w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                class="w-full resize-y rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
                 placeholder="补充任务细节"
               />
             </div>
 
             <div>
-              <label for="task-priority" class="mb-1.5 block text-sm font-medium text-slate-700">优先级</label>
+              <label for="task-priority" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">优先级</label>
               <select
                 id="task-priority"
                 v-model="form.priority"
-                class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
               >
                 <option value="high">高优先级</option>
                 <option value="medium">中优先级</option>
@@ -140,10 +140,10 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
               </select>
             </div>
 
-            <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
+            <div class="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
               <button
                 type="button"
-                class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-indigo-500"
+                class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                 @click="closeModal"
               >
                 取消
