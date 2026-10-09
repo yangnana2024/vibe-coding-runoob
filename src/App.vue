@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+import TaskList from './components/TaskList.vue'
 import type { Task } from './types/task'
 
-const tasks: Task[] = [
+const tasks = ref<Task[]>([
   {
     id: 'task-1',
     title: '梳理产品需求与用户流程',
@@ -29,21 +31,18 @@ const tasks: Task[] = [
     dueDate: '2026-10-13',
     createdAt: '2026-10-07',
   },
-]
+])
 
-const statusLabels = {
-  todo: '待处理',
-  'in-progress': '进行中',
-  done: '已完成',
+const completedCount = computed(() => tasks.value.filter((task) => task.status === 'done').length)
+
+function toggleTask(updatedTask: Task) {
+  const task = tasks.value.find((item) => item.id === updatedTask.id)
+  if (task) task.status = task.status === 'done' ? 'todo' : 'done'
 }
 
-const priorityLabels = {
-  low: '低优先级',
-  medium: '中优先级',
-  high: '高优先级',
+function deleteTask(deletedTask: Task) {
+  tasks.value = tasks.value.filter((task) => task.id !== deletedTask.id)
 }
-
-const completedCount = tasks.filter((task) => task.status === 'done').length
 </script>
 
 <template>
@@ -74,55 +73,7 @@ const completedCount = tasks.filter((task) => task.status === 'done').length
         </div>
       </section>
 
-      <section aria-label="任务列表" class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/50">
-        <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
-          <div>
-            <h2 class="m-0 text-base font-semibold text-slate-900">全部任务</h2>
-            <p class="mb-0 mt-1 text-xs text-slate-500">{{ tasks.length }} 个任务</p>
-          </div>
-          <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">最近更新</span>
-        </div>
-
-        <ul class="m-0 list-none divide-y divide-slate-100 p-0">
-          <li v-for="task in tasks" :key="task.id" class="grid gap-4 px-5 py-5 transition-colors hover:bg-slate-50/70 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-6">
-            <div class="flex min-w-0 gap-3">
-              <span
-                class="mt-1 grid size-5 shrink-0 place-items-center rounded-full border text-[10px] font-bold"
-                :class="task.status === 'done' ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 bg-white text-transparent'"
-                aria-hidden="true"
-              >✓</span>
-              <div class="min-w-0">
-                <h3 class="m-0 text-sm font-semibold text-slate-800" :class="task.status === 'done' ? 'text-slate-400 line-through' : ''">{{ task.title }}</h3>
-                <p class="mb-0 mt-1.5 text-sm leading-5 text-slate-500">{{ task.description }}</p>
-                <div class="mt-3 flex flex-wrap items-center gap-2">
-                  <span
-                    class="rounded-md px-2 py-1 text-xs font-medium"
-                    :class="{
-                      'bg-slate-100 text-slate-600': task.status === 'todo',
-                      'bg-indigo-50 text-indigo-700': task.status === 'in-progress',
-                      'bg-emerald-50 text-emerald-700': task.status === 'done',
-                    }"
-                  >{{ statusLabels[task.status] }}</span>
-                  <span
-                    class="rounded-md px-2 py-1 text-xs font-medium"
-                    :class="{
-                      'bg-slate-100 text-slate-600': task.priority === 'low',
-                      'bg-amber-50 text-amber-700': task.priority === 'medium',
-                      'bg-rose-50 text-rose-700': task.priority === 'high',
-                    }"
-                  >{{ priorityLabels[task.priority] }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="pl-8 text-xs text-slate-500 sm:pl-0 sm:text-right">
-              <span class="block text-[11px] text-slate-400">截止日期</span>
-              <time class="mt-1 block font-medium text-slate-600">{{ task.dueDate }}</time>
-            </div>
-          </li>
-        </ul>
-      </section>
-
-      <p class="mb-0 mt-5 text-center text-xs text-slate-400">当前展示示例任务，后续可接入真实数据。</p>
+      <TaskList :tasks="tasks" @toggle="toggleTask" @delete="deleteTask" />
     </main>
   </div>
 </template>
