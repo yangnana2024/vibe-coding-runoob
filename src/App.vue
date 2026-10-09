@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import TaskModal from './components/TaskModal.vue'
 import TaskList from './components/TaskList.vue'
 import type { Task } from './types/task'
 
@@ -43,6 +44,10 @@ function toggleTask(updatedTask: Task) {
 function deleteTask(deletedTask: Task) {
   tasks.value = tasks.value.filter((task) => task.id !== deletedTask.id)
 }
+
+function addTask(task: Task) {
+  tasks.value.push(task)
+}
 </script>
 
 <template>
@@ -67,9 +72,12 @@ function deleteTask(deletedTask: Task) {
           <h1 class="m-0 text-3xl font-semibold text-slate-900">我的任务</h1>
           <p class="mb-0 mt-2 text-sm leading-6 text-slate-500">把想法拆解成下一步，逐项推进。</p>
         </div>
-        <div class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-          <span class="grid size-8 place-items-center rounded-lg bg-indigo-50 text-sm font-bold text-indigo-700">{{ completedCount }}</span>
-          <span class="text-sm text-slate-600">/{{ tasks.length }} 项已完成</span>
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+            <span class="grid size-8 place-items-center rounded-lg bg-indigo-50 text-sm font-bold text-indigo-700">{{ completedCount }}</span>
+            <span class="text-sm text-slate-600">/{{ tasks.length }} 项已完成</span>
+          </div>
+          <TaskModal @submit="addTask" />
         </div>
       </section>
 
