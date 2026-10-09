@@ -81,16 +81,20 @@ function changeStatus(status: TaskStatus, task: Task) {
           <button
             ref="statusPickerTrigger"
             type="button"
-            class="inline-flex min-h-11 items-center rounded-md px-2 text-xs font-medium sm:hidden"
-            :class="{
-              'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300': task.status === 'todo',
-              'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300': task.status === 'in-progress',
-              'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300': task.status === 'done',
-            }"
+            class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md p-0 focus-visible:outline-2 focus-visible:outline-indigo-500 sm:hidden"
             :aria-label="`更改“${task.title}”的状态，当前为${statusLabels[task.status]}`"
             aria-haspopup="dialog"
             @click="openStatusPicker"
-          >{{ statusLabels[task.status] }}</button>
+          >
+            <span
+              class="rounded-md px-2 py-1 text-xs font-medium"
+              :class="{
+                'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300': task.status === 'todo',
+                'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300': task.status === 'in-progress',
+                'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300': task.status === 'done',
+              }"
+            >{{ statusLabels[task.status] }}</span>
+          </button>
           <span
             class="hidden rounded-md px-2 py-1 text-xs font-medium sm:inline-flex"
             :class="{

@@ -5,6 +5,7 @@ import TaskModal from './components/TaskModal.vue'
 import TaskList from './components/TaskList.vue'
 import ThemeToggle from './components/ThemeToggle.vue'
 import { addTask, deleteTask, taskStore, updateTask } from './stores/taskStore'
+import { appReleaseDate, appVersion, changelogHtml } from './appMetadata'
 import type { Task } from './types/task'
 
 const isTaskModalOpen = ref(false)
@@ -32,7 +33,7 @@ function selectView(view: 'list' | 'kanban') {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f7f8fc] text-left text-slate-800 transition-colors dark:bg-slate-950 dark:text-slate-100">
+  <div class="flex min-h-screen flex-col bg-[#f7f8fc] text-left text-slate-800 transition-colors dark:bg-slate-950 dark:text-slate-100">
     <header class="border-b border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900">
       <div class="mx-auto max-w-6xl px-5 sm:px-8">
         <div class="flex h-16 items-center justify-between">
@@ -84,7 +85,7 @@ function selectView(view: 'list' | 'kanban') {
       </div>
     </header>
 
-    <main class="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
+    <main class="mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
       <section class="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div>
           <p class="mb-2 text-sm font-semibold text-indigo-600 dark:text-indigo-300">任务空间</p>
@@ -138,5 +139,30 @@ function selectView(view: 'list' | 'kanban') {
         @delete="deleteTask"
       />
     </main>
+
+    <footer class="border-t border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900">
+      <div class="mx-auto grid max-w-6xl grid-cols-[1fr_auto] items-center gap-x-3 px-5 py-2 sm:flex sm:gap-3 sm:px-8">
+        <p class="col-span-2 m-0 text-xs text-slate-500 dark:text-slate-400">
+          Vibe Coding Runoob
+          <span class="mx-1 text-slate-300 dark:text-slate-600">·</span>
+          v{{ appVersion }}
+        </p>
+        <p class="row-start-2 m-0 text-xs text-slate-500 dark:text-slate-400 sm:row-auto">
+          更新于 <time :datetime="appReleaseDate">{{ appReleaseDate }}</time>
+        </p>
+        <details class="group relative col-start-2 row-start-2 shrink-0 sm:ml-auto sm:row-auto">
+          <summary class="flex min-h-11 cursor-pointer list-none items-center gap-1 rounded-md px-2 text-xs font-medium text-slate-600 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:text-slate-300 dark:hover:bg-slate-800">
+            更新记录
+            <span aria-hidden="true" class="transition-transform group-open:rotate-180">⌄</span>
+          </summary>
+          <section class="absolute bottom-full right-0 z-20 mb-2 max-h-[70dvh] w-72 max-w-[calc(100vw-2.5rem)] overflow-y-auto rounded-lg border border-slate-200 bg-white p-4 text-sm shadow-xl dark:border-slate-700 dark:bg-slate-900">
+            <div
+              class="leading-6 text-slate-600 dark:text-slate-300 [&_h1]:mb-3 [&_h1]:mt-0 [&_h1]:text-base [&_h1]:font-semibold [&_h1]:text-slate-900 [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:text-slate-800 [&_ul]:mb-3 [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5 [&_p]:my-2 dark:[&_h1]:text-slate-100 dark:[&_h2]:text-slate-100"
+              v-html="changelogHtml"
+            />
+          </section>
+        </details>
+      </div>
+    </footer>
   </div>
 </template>
