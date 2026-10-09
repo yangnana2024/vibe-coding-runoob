@@ -1,3 +1,6 @@
+@import 'tailwindcss';
+
+@layer base {
 :root {
   --text: #6b6375;
   --text-h: #08060d;
@@ -293,4 +296,13 @@ code {
     right: 0;
     border-right-color: var(--border);
   }
+}
+
+#app {
+  width: 100%;
+  max-width: none;
+  display: block;
+  border: 0;
+  text-align: left;
+}
 }
