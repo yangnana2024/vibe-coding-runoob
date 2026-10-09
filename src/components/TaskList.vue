@@ -40,7 +40,7 @@ const visibleTasks = computed(() =>
           v-for="filter in filters"
           :key="filter.value"
           type="button"
-          class="rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-indigo-500"
+          class="min-h-11 rounded-md px-3 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-indigo-500"
           :class="activeFilter === filter.value ? 'bg-white font-semibold text-slate-900 shadow-sm dark:bg-slate-700 dark:text-slate-100' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100'"
           :aria-pressed="activeFilter === filter.value"
           @click="activeFilter = filter.value"

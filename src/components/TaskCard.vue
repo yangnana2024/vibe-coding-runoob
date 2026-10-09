@@ -33,13 +33,15 @@ const statusLabels = {
     }"
   >
     <div class="flex min-w-0 gap-3">
-      <input
-        type="checkbox"
-        :checked="task.status === 'done'"
-        :aria-label="task.status === 'done' ? '标记为待办' : '标记为完成'"
-        class="mt-0.5 size-4 shrink-0 cursor-pointer accent-emerald-600"
-        @change="emit('toggle', task)"
-      />
+      <label class="grid size-11 shrink-0 cursor-pointer place-items-center" :aria-label="task.status === 'done' ? '标记为待办' : '标记为完成'">
+        <input
+          type="checkbox"
+          :checked="task.status === 'done'"
+          :aria-label="task.status === 'done' ? '标记为待办' : '标记为完成'"
+          class="size-5 cursor-pointer accent-emerald-600"
+          @change="emit('toggle', task)"
+        />
+      </label>
       <div class="min-w-0">
         <h3
           class="m-0 text-sm font-semibold text-slate-800 dark:text-slate-100"
@@ -77,7 +79,7 @@ const statusLabels = {
       <button
         type="button"
         aria-label="删除任务"
-        class="grid size-8 shrink-0 place-items-center rounded-md text-xl leading-none text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-rose-500 dark:text-slate-500 dark:hover:bg-rose-950 dark:hover:text-rose-300"
+        class="grid size-11 shrink-0 place-items-center rounded-md text-xl leading-none text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-rose-500 dark:text-slate-500 dark:hover:bg-rose-950 dark:hover:text-rose-300"
         @click="emit('delete', task)"
       >
         ×

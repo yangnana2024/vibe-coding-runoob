@@ -47,11 +47,11 @@ function dropTask(event: DragEvent, status: TaskStatus) {
 </script>
 
 <template>
-  <div class="flex gap-4 overflow-x-auto pb-3 lg:grid lg:grid-cols-3 lg:overflow-visible">
+  <div class="grid grid-cols-1 gap-4 pb-3 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
     <section
       v-for="column in columns"
       :key="column.status"
-      class="min-w-[280px] flex-1 rounded-lg border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-900/80"
+      class="min-w-0 rounded-lg border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-900/80"
       :class="{
         'border-t-4 border-t-slate-400': column.status === 'todo',
         'border-t-4 border-t-sky-500': column.status === 'in-progress',
