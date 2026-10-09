@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import KanbanBoard from './components/KanbanBoard.vue'
 import TaskModal from './components/TaskModal.vue'
 import TaskList from './components/TaskList.vue'
 import { addTask, deleteTask, taskStore, updateTask } from './stores/taskStore'
 import type { Task } from './types/task'
 
 const isTaskModalOpen = ref(false)
+const activeView = ref<'list' | 'kanban'>('list')
 
 const completedCount = computed(() => taskStore.tasks.filter((task) => task.status === 'done').length)
 
@@ -14,6 +16,11 @@ function toggleTask(updatedTask: Task) {
     ...updatedTask,
     status: updatedTask.status === 'done' ? 'todo' : 'done',
   })
+}
+
+function moveTask(payload: { taskId: string; status: Task['status'] }) {
+  const task = taskStore.tasks.find((item) => item.id === payload.taskId)
+  if (task) updateTask({ ...task, status: payload.status })
 }
 </script>
 
@@ -48,7 +55,42 @@ function toggleTask(updatedTask: Task) {
         </div>
       </section>
 
-      <TaskList :tasks="taskStore.tasks" @toggle="toggleTask" @delete="deleteTask" />
+      <div class="mb-5 inline-flex rounded-lg bg-slate-100 p-1" role="tablist" aria-label="任务视图">
+        <button
+          type="button"
+          role="tab"
+          class="rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-indigo-500"
+          :class="activeView === 'list' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'"
+          :aria-selected="activeView === 'list'"
+          @click="activeView = 'list'"
+        >
+          列表
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-indigo-500"
+          :class="activeView === 'kanban' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'"
+          :aria-selected="activeView === 'kanban'"
+          @click="activeView = 'kanban'"
+        >
+          看板
+        </button>
+      </div>
+
+      <TaskList
+        v-if="activeView === 'list'"
+        :tasks="taskStore.tasks"
+        @toggle="toggleTask"
+        @delete="deleteTask"
+      />
+      <KanbanBoard
+        v-else
+        :tasks="taskStore.tasks"
+        @move="moveTask"
+        @toggle="toggleTask"
+        @delete="deleteTask"
+      />
     </main>
   </div>
 </template>

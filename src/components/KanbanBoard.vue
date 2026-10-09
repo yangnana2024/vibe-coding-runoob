@@ -1,0 +1,90 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import type { Task, TaskStatus } from '../types/task'
+import TaskCard from './TaskCard.vue'
+
+const props = defineProps<{
+  tasks: Task[]
+}>()
+
+const emit = defineEmits<{
+  move: [payload: { taskId: string; status: TaskStatus }]
+  toggle: [task: Task]
+  delete: [task: Task]
+}>()
+
+const columns: { title: string; status: TaskStatus }[] = [
+  { title: '待办', status: 'todo' },
+  { title: '进行中', status: 'in-progress' },
+  { title: '已完成', status: 'done' },
+]
+
+const tasksByStatus = computed(() =>
+  Object.fromEntries(
+    columns.map((column) => [
+      column.status,
+      props.tasks.filter((task) => task.status === column.status),
+    ]),
+  ) as Record<TaskStatus, Task[]>,
+)
+
+function startDrag(event: DragEvent, task: Task) {
+  if (!event.dataTransfer) return
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', task.id)
+}
+
+function allowDrop(event: DragEvent) {
+  event.preventDefault()
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+}
+
+function dropTask(event: DragEvent, status: TaskStatus) {
+  event.preventDefault()
+  const taskId = event.dataTransfer?.getData('text/plain')
+  if (taskId) emit('move', { taskId, status })
+}
+</script>
+
+<template>
+  <div class="flex gap-4 overflow-x-auto pb-3 lg:grid lg:grid-cols-3 lg:overflow-visible">
+    <section
+      v-for="column in columns"
+      :key="column.status"
+      class="min-w-[280px] flex-1 rounded-lg border border-slate-200 bg-slate-50/70 p-3"
+      :class="{
+        'border-t-4 border-t-slate-400': column.status === 'todo',
+        'border-t-4 border-t-sky-500': column.status === 'in-progress',
+        'border-t-4 border-t-emerald-500': column.status === 'done',
+      }"
+      @dragover="allowDrop"
+      @drop="dropTask($event, column.status)"
+    >
+      <header class="mb-3 flex items-center justify-between px-1 py-1">
+        <h2 class="m-0 text-sm font-semibold text-slate-800">{{ column.title }}</h2>
+        <span class="grid min-w-6 place-items-center rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-500">
+          {{ tasksByStatus[column.status].length }}
+        </span>
+      </header>
+
+      <ul class="m-0 min-h-32 list-none space-y-3 p-0">
+        <li v-for="task in tasksByStatus[column.status]" :key="task.id">
+          <div
+            draggable="true"
+            class="cursor-grab active:cursor-grabbing"
+            @dragstart="startDrag($event, task)"
+          >
+            <TaskCard
+              :task="task"
+              @toggle="emit('toggle', $event)"
+              @delete="emit('delete', $event)"
+            />
+          </div>
+        </li>
+        <li v-if="tasksByStatus[column.status].length === 0" class="px-2 py-8 text-center text-xs text-slate-400">
+          将任务拖到此列
+        </li>
+      </ul>
+    </section>
+  </div>
+</template>
