@@ -78,6 +78,7 @@ function dropTask(event: DragEvent, status: TaskStatus) {
               :task="task"
               @toggle="emit('toggle', $event)"
               @delete="emit('delete', $event)"
+              @move="emit('move', $event)"
             />
           </div>
         </li>

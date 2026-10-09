@@ -10,6 +10,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   toggle: [task: Task]
   delete: [task: Task]
+  move: [payload: { taskId: string; status: TaskStatus }]
 }>()
 
 const filters: { label: string; value: TaskStatus | 'all' }[] = [
@@ -52,7 +53,12 @@ const visibleTasks = computed(() =>
 
     <ul v-if="visibleTasks.length" class="m-0 list-none space-y-3 p-4 sm:p-5">
       <li v-for="task in visibleTasks" :key="task.id">
-        <TaskCard :task="task" @toggle="emit('toggle', $event)" @delete="emit('delete', $event)" />
+        <TaskCard
+          :task="task"
+          @toggle="emit('toggle', $event)"
+          @delete="emit('delete', $event)"
+          @move="emit('move', $event)"
+        />
       </li>
     </ul>
     <p v-else-if="tasks.length === 0" class="m-0 px-5 py-12 text-center text-sm text-slate-500 dark:text-slate-400">

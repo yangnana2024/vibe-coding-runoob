@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Task } from '../types/task'
+import { nextTick, ref } from 'vue'
+import type { Task, TaskStatus } from '../types/task'
 
 defineProps<{
   task: Task
@@ -8,6 +9,7 @@ defineProps<{
 const emit = defineEmits<{
   toggle: [task: Task]
   delete: [task: Task]
+  move: [payload: { taskId: string; status: TaskStatus }]
 }>()
 
 const priorityLabels = {
@@ -20,6 +22,31 @@ const statusLabels = {
   todo: '待办',
   'in-progress': '进行中',
   done: '完成',
+}
+
+const statusOptions: { label: string; value: TaskStatus }[] = [
+  { label: '待办', value: 'todo' },
+  { label: '进行中', value: 'in-progress' },
+  { label: '已完成', value: 'done' },
+]
+
+const isStatusPickerOpen = ref(false)
+const statusPickerTrigger = ref<HTMLButtonElement | null>(null)
+const firstStatusOption = ref<HTMLButtonElement | null>(null)
+
+function openStatusPicker() {
+  isStatusPickerOpen.value = true
+  nextTick(() => firstStatusOption.value?.focus())
+}
+
+function closeStatusPicker() {
+  isStatusPickerOpen.value = false
+  nextTick(() => statusPickerTrigger.value?.focus())
+}
+
+function changeStatus(status: TaskStatus, task: Task) {
+  emit('move', { taskId: task.id, status })
+  closeStatusPicker()
 }
 </script>
 
@@ -51,8 +78,21 @@ const statusLabels = {
         </h3>
         <p class="mb-0 mt-1.5 text-sm leading-5 text-slate-500 dark:text-slate-400">{{ task.description }}</p>
         <div class="mt-3 flex flex-wrap items-center gap-2">
+          <button
+            ref="statusPickerTrigger"
+            type="button"
+            class="inline-flex min-h-11 items-center rounded-md px-2 text-xs font-medium sm:hidden"
+            :class="{
+              'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300': task.status === 'todo',
+              'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300': task.status === 'in-progress',
+              'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300': task.status === 'done',
+            }"
+            :aria-label="`更改“${task.title}”的状态，当前为${statusLabels[task.status]}`"
+            aria-haspopup="dialog"
+            @click="openStatusPicker"
+          >{{ statusLabels[task.status] }}</button>
           <span
-            class="rounded-md px-2 py-1 text-xs font-medium"
+            class="hidden rounded-md px-2 py-1 text-xs font-medium sm:inline-flex"
             :class="{
               'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300': task.status === 'todo',
               'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300': task.status === 'in-progress',
@@ -86,4 +126,58 @@ const statusLabels = {
       </button>
     </div>
   </article>
+
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transition-opacity duration-200"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="isStatusPickerOpen"
+        class="fixed inset-0 z-50 grid items-end bg-slate-950/45 sm:hidden"
+        @click.self="closeStatusPicker"
+        @keydown.esc.stop.prevent="closeStatusPicker"
+      >
+        <section
+          role="dialog"
+          aria-modal="true"
+          :aria-label="`更改“${task.title}”的状态`"
+          class="rounded-t-xl bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl dark:bg-slate-900"
+        >
+          <div class="mb-4 flex items-center justify-between">
+            <h2 class="m-0 text-base font-semibold text-slate-900 dark:text-slate-100">更改任务状态</h2>
+            <button
+              type="button"
+              class="grid size-11 place-items-center rounded-md text-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              aria-label="关闭状态选项"
+              @click="closeStatusPicker"
+            >
+              ×
+            </button>
+          </div>
+          <div class="grid grid-cols-1 gap-2">
+            <button
+              v-for="(option, index) in statusOptions"
+              :key="option.value"
+              :ref="index === 0 ? (element) => { firstStatusOption = element as HTMLButtonElement | null } : undefined"
+              type="button"
+              class="flex min-h-11 items-center justify-between rounded-md border px-4 text-left text-sm font-medium transition-colors"
+              :class="task.status === option.value
+                ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-900 dark:bg-indigo-950 dark:text-indigo-300'
+                : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'"
+              :aria-pressed="task.status === option.value"
+              @click="changeStatus(option.value, task)"
+            >
+              {{ option.label }}
+              <span v-if="task.status === option.value" aria-hidden="true">当前</span>
+            </button>
+          </div>
+        </section>
+      </div>
+    </Transition>
+  </Teleport>
 </template>

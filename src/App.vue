@@ -126,6 +126,7 @@ function selectView(view: 'list' | 'kanban') {
       <TaskList
         v-if="activeView === 'list'"
         :tasks="taskStore.tasks"
+        @move="moveTask"
         @toggle="toggleTask"
         @delete="deleteTask"
       />
