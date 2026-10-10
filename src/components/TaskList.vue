@@ -11,6 +11,8 @@ const emit = defineEmits<{
   toggle: [task: Task]
   delete: [task: Task]
   move: [payload: { taskId: string; status: TaskStatus }]
+  priority: [payload: { taskId: string; priority: Task['priority'] }]
+  dueDate: [payload: { taskId: string; dueDate: string }]
   edit: [task: Task]
 }>()
 
@@ -59,6 +61,8 @@ const visibleTasks = computed(() =>
           @toggle="emit('toggle', $event)"
           @delete="emit('delete', $event)"
           @move="emit('move', $event)"
+          @priority="emit('priority', $event)"
+          @due-date="emit('dueDate', $event)"
           @edit="emit('edit', $event)"
         />
       </li>

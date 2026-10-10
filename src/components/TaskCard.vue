@@ -1,15 +1,22 @@
 <script setup lang="ts">
 import { nextTick, ref } from 'vue'
-import type { Task, TaskStatus } from '../types/task'
+import type { Task, TaskPriority, TaskStatus } from '../types/task'
+import TaskPriorityPicker from './TaskPriorityPicker.vue'
+import TaskStatusPicker from './TaskStatusPicker.vue'
 
-defineProps<{
+const props = withDefaults(defineProps<{
   task: Task
-}>()
+  layout?: 'list' | 'kanban'
+}>(), {
+  layout: 'list',
+})
 
 const emit = defineEmits<{
   toggle: [task: Task]
   delete: [task: Task]
   move: [payload: { taskId: string; status: TaskStatus }]
+  priority: [payload: { taskId: string; priority: TaskPriority }]
+  dueDate: [payload: { taskId: string; dueDate: string }]
   edit: [task: Task]
 }>()
 
@@ -19,38 +26,30 @@ const priorityLabels = {
   high: '高优先级',
 }
 
-const statusLabels = {
-  todo: '待办',
-  'in-progress': '进行中',
-  done: '完成',
-}
-
-const statusOptions: { label: string; value: TaskStatus }[] = [
-  { label: '待办', value: 'todo' },
-  { label: '进行中', value: 'in-progress' },
-  { label: '已完成', value: 'done' },
-]
-
-const isStatusPickerOpen = ref(false)
-const statusPickerTrigger = ref<HTMLButtonElement | null>(null)
-const firstStatusOption = ref<HTMLButtonElement | null>(null)
 const isDeleteConfirmOpen = ref(false)
+const dueDateInput = ref<HTMLInputElement | null>(null)
 const deleteTrigger = ref<HTMLButtonElement | null>(null)
 const cancelDeleteButton = ref<HTMLButtonElement | null>(null)
 
-function openStatusPicker() {
-  isStatusPickerOpen.value = true
-  nextTick(() => firstStatusOption.value?.focus())
+function openDueDatePicker() {
+  const input = dueDateInput.value
+  if (!input) return
+
+  try {
+    if (typeof input.showPicker === 'function') {
+      input.showPicker()
+      return
+    }
+  } catch {
+    // Fall back for browsers that do not allow showPicker in this context.
+  }
+
+  input.click()
 }
 
-function closeStatusPicker() {
-  isStatusPickerOpen.value = false
-  nextTick(() => statusPickerTrigger.value?.focus())
-}
-
-function changeStatus(status: TaskStatus, task: Task) {
-  emit('move', { taskId: task.id, status })
-  closeStatusPicker()
+function updateDueDate(event: Event) {
+  const dueDate = (event.currentTarget as HTMLInputElement).value
+  if (dueDate) emit('dueDate', { taskId: props.task.id, dueDate })
 }
 
 function openDeleteConfirm() {
@@ -71,12 +70,15 @@ function confirmDelete(task: Task) {
 
 <template>
   <article
-    class="grid gap-4 rounded-md border border-slate-200 border-l-4 bg-white px-4 py-4 shadow-sm transition-transform duration-200 hover:scale-[1.02] dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/20 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
-    :class="{
-      'border-l-rose-500 dark:border-l-rose-400': task.priority === 'high',
-      'border-l-amber-400 dark:border-l-amber-300': task.priority === 'medium',
-      'border-l-emerald-500 dark:border-l-emerald-400': task.priority === 'low',
-    }"
+    class="grid gap-4 rounded-md border border-slate-200 border-l-4 bg-white px-4 py-4 shadow-sm transition-transform duration-200 hover:scale-[1.02] dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/20"
+    :class="[
+      layout === 'kanban' ? 'grid-cols-1' : 'sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center',
+      {
+        'border-l-rose-500 dark:border-l-rose-400': task.priority === 'high',
+        'border-l-amber-400 dark:border-l-amber-300': task.priority === 'medium',
+        'border-l-emerald-500 dark:border-l-emerald-400': task.priority === 'low',
+      },
+    ]"
   >
     <div class="flex min-w-0 gap-3">
       <label class="grid size-11 shrink-0 cursor-pointer place-items-center" :aria-label="task.status === 'done' ? '标记为待办' : '标记为完成'">
@@ -97,47 +99,41 @@ function confirmDelete(task: Task) {
         </h3>
         <p class="mb-0 mt-1.5 text-sm leading-5 text-slate-500 dark:text-slate-400">{{ task.description }}</p>
         <div class="mt-3 flex flex-wrap items-center gap-2">
-          <button
-            ref="statusPickerTrigger"
-            type="button"
-            class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md p-0 focus-visible:outline-2 focus-visible:outline-indigo-500 sm:hidden"
-            :aria-label="`更改“${task.title}”的状态，当前为${statusLabels[task.status]}`"
-            aria-haspopup="dialog"
-            @click="openStatusPicker"
-          >
-            <span
-              class="rounded-md px-2 py-1 text-xs font-medium"
-              :class="{
-                'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300': task.status === 'todo',
-                'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300': task.status === 'in-progress',
-                'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300': task.status === 'done',
-              }"
-            >{{ statusLabels[task.status] }}</span>
-          </button>
-          <span
-            class="hidden rounded-md px-2 py-1 text-xs font-medium sm:inline-flex"
-            :class="{
-              'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300': task.status === 'todo',
-              'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300': task.status === 'in-progress',
-              'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300': task.status === 'done',
-            }"
-          >{{ statusLabels[task.status] }}</span>
-          <span
-            class="rounded-md px-2 py-1 text-xs font-medium"
-            :class="{
-              'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300': task.priority === 'low',
-              'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300': task.priority === 'medium',
-              'bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300': task.priority === 'high',
-            }"
-          >{{ priorityLabels[task.priority] }}</span>
+          <TaskStatusPicker
+            :model-value="task.status"
+            :task-title="task.title"
+            @update:model-value="emit('move', { taskId: task.id, status: $event })"
+          />
+          <TaskPriorityPicker
+            :model-value="task.priority"
+            :task-title="task.title"
+            variant="badge"
+            @update:model-value="emit('priority', { taskId: task.id, priority: $event })"
+          />
         </div>
       </div>
     </div>
 
     <div class="flex items-center justify-between gap-4 pl-7 sm:justify-end sm:pl-0">
-      <div class="text-xs text-slate-500 dark:text-slate-400 sm:text-right">
-        <span class="block text-[11px] text-slate-400 dark:text-slate-500">截止日期</span>
-        <time class="mt-1 block font-medium text-slate-600 dark:text-slate-300">{{ task.dueDate }}</time>
+      <div class="relative">
+        <input
+          ref="dueDateInput"
+          type="date"
+          :value="task.dueDate"
+          :aria-label="`修改“${task.title}”的截止日期`"
+          tabindex="-1"
+          class="absolute inset-0 -z-10 h-full w-full opacity-0"
+          @change="updateDueDate"
+        />
+        <button
+          type="button"
+          :aria-label="`修改“${task.title}”的截止日期`"
+          class="rounded-md px-2 py-1.5 text-left text-xs text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 sm:text-right"
+          @click="openDueDatePicker"
+        >
+          <span class="block text-[11px] text-slate-400 dark:text-slate-500">截止日期</span>
+          <time class="mt-1 block font-medium text-slate-600 dark:text-slate-300">{{ task.dueDate }}</time>
+        </button>
       </div>
       <div class="flex shrink-0 items-center gap-1">
         <button
@@ -161,60 +157,6 @@ function confirmDelete(task: Task) {
       </div>
     </div>
   </article>
-
-  <Teleport to="body">
-    <Transition
-      enter-active-class="transition-opacity duration-200"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="transition-opacity duration-200"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div
-        v-if="isStatusPickerOpen"
-        class="fixed inset-0 z-50 grid items-end bg-slate-950/45 sm:hidden"
-        @click.self="closeStatusPicker"
-        @keydown.esc.stop.prevent="closeStatusPicker"
-      >
-        <section
-          role="dialog"
-          aria-modal="true"
-          :aria-label="`更改“${task.title}”的状态`"
-          class="rounded-t-xl bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl dark:bg-slate-900"
-        >
-          <div class="mb-4 flex items-center justify-between">
-            <h2 class="m-0 text-base font-semibold text-slate-900 dark:text-slate-100">更改任务状态</h2>
-            <button
-              type="button"
-              class="grid size-11 place-items-center rounded-md text-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-              aria-label="关闭状态选项"
-              @click="closeStatusPicker"
-            >
-              ×
-            </button>
-          </div>
-          <div class="grid grid-cols-1 gap-2">
-            <button
-              v-for="(option, index) in statusOptions"
-              :key="option.value"
-              :ref="index === 0 ? (element) => { firstStatusOption = element as HTMLButtonElement | null } : undefined"
-              type="button"
-              class="flex min-h-11 items-center justify-between rounded-md border px-4 text-left text-sm font-medium transition-colors"
-              :class="task.status === option.value
-                ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-900 dark:bg-indigo-950 dark:text-indigo-300'
-                : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'"
-              :aria-pressed="task.status === option.value"
-              @click="changeStatus(option.value, task)"
-            >
-              {{ option.label }}
-              <span v-if="task.status === option.value" aria-hidden="true">当前</span>
-            </button>
-          </div>
-        </section>
-      </div>
-    </Transition>
-  </Teleport>
 
   <Teleport to="body">
     <Transition

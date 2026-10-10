@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import type { Task, TaskPriority, TaskStatus } from '../types/task'
+import TaskPriorityPicker from './TaskPriorityPicker.vue'
+import TaskStatusPicker from './TaskStatusPicker.vue'
 
 const props = defineProps<{
   modelValue: boolean
@@ -25,7 +27,24 @@ function formatDate(date: string) {
   return year && month && day ? `${year}年${month}月${day}日` : '请选择日期'
 }
 
+function openDatePicker() {
+  const input = dueDateInput.value
+  if (!input) return
+
+  try {
+    if (typeof input.showPicker === 'function') {
+      input.showPicker()
+      return
+    }
+  } catch {
+    // Fall back for browsers that do not allow showPicker in this context.
+  }
+
+  input.click()
+}
+
 const titleError = ref(false)
+const dueDateInput = ref<HTMLInputElement | null>(null)
 const form = reactive({
   title: '',
   description: '',
@@ -174,51 +193,57 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
             </div>
 
             <div>
-              <label for="task-due-date" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">截止日期</label>
+              <button
+                id="task-due-date-label"
+                type="button"
+                class="mb-1.5 block cursor-pointer text-sm font-medium text-slate-700 hover:text-indigo-600 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:text-slate-300 dark:hover:text-indigo-300"
+                @click="openDatePicker"
+              >
+                截止日期
+              </button>
               <div class="relative min-h-11 w-full">
                 <input
+                  ref="dueDateInput"
                   id="task-due-date"
                   v-model="form.dueDate"
                   type="date"
                   lang="zh-CN"
                   required
-                  class="peer absolute inset-0 z-10 w-full cursor-pointer opacity-0"
+                  aria-label="选择截止日期"
+                  tabindex="-1"
+                  class="absolute inset-0 -z-10 h-11 w-full opacity-0"
                 />
-                <div
-                  aria-hidden="true"
-                  class="flex min-h-11 items-center justify-between rounded-md border border-slate-300 bg-white px-3 text-base text-slate-900 transition peer-focus-visible:border-indigo-500 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                <button
+                  type="button"
+                  aria-labelledby="task-due-date-label"
+                  class="flex min-h-11 w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 text-left text-base text-slate-900 transition hover:border-slate-400 focus-visible:outline-2 focus-visible:outline-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:border-slate-500"
+                  @click="openDatePicker"
                 >
                   <time>{{ formatDate(form.dueDate) }}</time>
                   <span class="text-sm text-slate-400">更改</span>
-                </div>
+                </button>
               </div>
             </div>
 
             <div>
               <label for="task-priority" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">优先级</label>
-              <select
+              <TaskPriorityPicker
                 id="task-priority"
                 v-model="form.priority"
-                class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-              >
-                <option value="high">高优先级</option>
-                <option value="medium">中优先级</option>
-                <option value="low">低优先级</option>
-              </select>
+                :task-title="form.title || '任务'"
+                variant="field"
+              />
             </div>
 
             <div v-if="task" class="grid gap-4 sm:grid-cols-2">
               <div>
                 <label for="task-status" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">状态</label>
-                <select
+                <TaskStatusPicker
                   id="task-status"
                   v-model="form.status"
-                  class="min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-base text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                >
-                  <option value="todo">待办</option>
-                  <option value="in-progress">进行中</option>
-                  <option value="done">已完成</option>
-                </select>
+                  :task-title="form.title || task.title"
+                  variant="field"
+                />
               </div>
               <div>
                 <span class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">创建时间</span>

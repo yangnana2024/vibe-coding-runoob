@@ -27,6 +27,16 @@ function moveTask(payload: { taskId: string; status: Task['status'] }) {
   if (task) updateTask({ ...task, status: payload.status })
 }
 
+function updateTaskPriority(payload: { taskId: string; priority: Task['priority'] }) {
+  const task = taskStore.tasks.find((item) => item.id === payload.taskId)
+  if (task) updateTask({ ...task, priority: payload.priority })
+}
+
+function updateTaskDueDate(payload: { taskId: string; dueDate: string }) {
+  const task = taskStore.tasks.find((item) => item.id === payload.taskId)
+  if (task) updateTask({ ...task, dueDate: payload.dueDate })
+}
+
 function openEditTask(task: Task) {
   editingTask.value = task
   isTaskModalOpen.value = true
@@ -160,6 +170,8 @@ function selectView(view: 'list' | 'kanban') {
         @move="moveTask"
         @toggle="toggleTask"
         @delete="deleteTask"
+        @priority="updateTaskPriority"
+        @due-date="updateTaskDueDate"
         @edit="openEditTask"
       />
       <KanbanBoard
@@ -168,6 +180,8 @@ function selectView(view: 'list' | 'kanban') {
         @move="moveTask"
         @toggle="toggleTask"
         @delete="deleteTask"
+        @priority="updateTaskPriority"
+        @due-date="updateTaskDueDate"
         @edit="openEditTask"
       />
     </main>

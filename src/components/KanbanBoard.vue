@@ -11,6 +11,8 @@ const emit = defineEmits<{
   move: [payload: { taskId: string; status: TaskStatus }]
   toggle: [task: Task]
   delete: [task: Task]
+  priority: [payload: { taskId: string; priority: Task['priority'] }]
+  dueDate: [payload: { taskId: string; dueDate: string }]
   edit: [task: Task]
 }>()
 
@@ -77,8 +79,10 @@ function dropTask(event: DragEvent, status: TaskStatus) {
           >
             <TaskCard
               :task="task"
+              layout="kanban"
               @toggle="emit('toggle', $event)"
               @delete="emit('delete', $event)"
+              @due-date="emit('dueDate', $event)"
               @edit="emit('edit', $event)"
               @move="emit('move', $event)"
             />
